@@ -1,3 +1,10 @@
+myrulib (0.29.17-trash) testing; urgency=low
+  попытка собрать myrulib 0.29.16 с wxWidgets 3.2
+  формально устранены ошибки при сборке
+  надеюсь, это хоть как-то запустится
+
+ -- madrouter Sun, 30 Jul 2023
+
 myrulib (0.29.16-squeeze1) stable; urgency=low
 
   Исправление ошибок:

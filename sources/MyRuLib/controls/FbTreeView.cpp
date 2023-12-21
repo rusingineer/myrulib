@@ -1030,7 +1030,7 @@ void FbTreeViewMainWindow::OnIdle (wxIdleEvent &WXUNUSED(event))
 void FbTreeViewMainWindow::OnScroll (wxScrollWinEvent& event)
 {
 	#if defined(__WXGTK__) && !defined(__WXUNIVERSAL__)
-	wxScrolledWindow::OnScroll(event);
+	//wxScrolledWindow::OnScroll(event);
 	#else
 	HandleOnScroll( event );
 	#endif

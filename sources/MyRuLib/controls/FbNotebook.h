@@ -24,7 +24,8 @@ public:
     wxAuiTabArt* Clone();
     void SetFlags(unsigned int flags);
     void SetSizingInfo(const wxSize& tabCtrlSize,
-                       size_t tabCount);
+                       size_t tabCount,
+                       wxWindow* wnd);
 
     void SetNormalFont(const wxFont& font);
     void SetSelectedFont(const wxFont& font);
@@ -65,7 +66,7 @@ public:
                  wxDC& dc,
                  wxWindow* wnd,
                  const wxString& caption,
-                 const wxBitmap& bitmap,
+                 const wxBitmapBundle& bitmap,
                  bool active,
                  int closeButtonState,
                  int* xExtent);
@@ -73,6 +74,13 @@ public:
     int GetBestTabCtrlSize(wxWindow* wnd,
                  const wxAuiNotebookPageArray& pages,
                  const wxSize& requiredBmpSize);
+				 
+    void DrawBorder(wxDC& dc,
+                    wxWindow* wnd,
+                    const wxRect& rect);
+
+    int GetBorderWidth(wxWindow* wnd);
+    int GetAdditionalBorderSpace(wxWindow* wnd);
 
 protected:
 
@@ -111,7 +119,8 @@ public:
     void SetFlags(unsigned int flags);
 
     void SetSizingInfo(const wxSize& tabCtrlSize,
-                       size_t tabCount);
+                       size_t tabCount,
+					   wxWindow* wnd);
 
     void SetNormalFont(const wxFont& font);
     void SetSelectedFont(const wxFont& font);
@@ -148,7 +157,7 @@ public:
                  wxDC& dc,
                  wxWindow* wnd,
                  const wxString& caption,
-                 const wxBitmap& bitmap,
+                 const wxBitmapBundle& bitmap,
                  bool active,
                  int closeButtonState,
                  int* xExtent);
@@ -161,6 +170,13 @@ public:
     int GetBestTabCtrlSize(wxWindow* wnd,
                  const wxAuiNotebookPageArray& pages,
                  const wxSize& requiredBmpSize);
+				 
+    void DrawBorder(wxDC& dc,
+                    wxWindow* wnd,
+                    const wxRect& rect);
+
+    int GetBorderWidth(wxWindow* wnd);
+    int GetAdditionalBorderSpace(wxWindow* wnd);
 
 protected:
 

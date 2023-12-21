@@ -335,7 +335,8 @@ void WxAuiDefaultTabArt::SetFlags(unsigned int flags)
 }
 
 void WxAuiDefaultTabArt::SetSizingInfo(const wxSize& tab_ctrl_size,
-                                       size_t tab_count)
+                                       size_t tab_count,
+									   wxWindow* wnd)
 {
     m_fixedTabWidth = 100;
 
@@ -614,18 +615,20 @@ void WxAuiDefaultTabArt::DrawTab(wxDC& dc,
         close_button_width = m_activeCloseBmp.GetWidth();
     }
 
-    int bitmap_offset = 0;
+    wxSize bitmapSize;
+	int bitmap_offset = 0;
     if (page.bitmap.IsOk())
     {
-        bitmap_offset = tab_x + 8;
+        bitmapSize = page.bitmap.GetPreferredLogicalSizeFor(wnd);
+		bitmap_offset = tab_x + 8;
 
         // draw bitmap
-        dc.DrawBitmap(page.bitmap,
+        dc.DrawBitmap(page.bitmap.GetBitmapFor(wnd),
                       bitmap_offset,
-                      drawn_tab_yoff + (drawn_tab_height/2) - (page.bitmap.GetHeight()/2),
+                      drawn_tab_yoff + (drawn_tab_height/2) - (bitmapSize.y/2),
                       true);
 
-        text_offset = bitmap_offset + page.bitmap.GetWidth();
+        text_offset = bitmap_offset + bitmapSize.x;
         text_offset += 3; // bitmap padding
 
     }
@@ -654,8 +657,9 @@ void WxAuiDefaultTabArt::DrawTab(wxDC& dc,
         wxRect focusRectBitmap;
 
         if (page.bitmap.IsOk())
-            focusRectBitmap = wxRect(bitmap_offset, drawn_tab_yoff + (drawn_tab_height/2) - (page.bitmap.GetHeight()/2),
-                                            page.bitmap.GetWidth(), page.bitmap.GetHeight());
+            bitmapSize = page.bitmap.GetPreferredLogicalSizeFor(wnd);
+            focusRectBitmap = wxRect(bitmap_offset, drawn_tab_yoff + (drawn_tab_height/2) - (bitmapSize.y/2),
+                                            bitmapSize.x, bitmapSize.y);
 
         if (page.bitmap.IsOk() && draw_text.IsEmpty())
             focusRect = focusRectBitmap;
@@ -706,9 +710,9 @@ int WxAuiDefaultTabArt::GetIndentSize()
 }
 
 wxSize WxAuiDefaultTabArt::GetTabSize(wxDC& dc,
-                                      wxWindow* WXUNUSED(wnd),
+                                      wxWindow* wnd,
                                       const wxString& caption,
-                                      const wxBitmap& bitmap,
+                                      const wxBitmapBundle& bitmap,
                                       bool WXUNUSED(active),
                                       int close_button_state,
                                       int* x_extent)
@@ -731,9 +735,12 @@ wxSize WxAuiDefaultTabArt::GetTabSize(wxDC& dc,
     // if there's a bitmap, add space for it
     if (bitmap.IsOk())
     {
-        tab_width += bitmap.GetWidth();
+        // see wxWidget source, aui/tabart.cpp, wxAuiGenericTabArt::GetTabSize
+	    const wxSize bitmapSize = bitmap.GetPreferredLogicalSizeFor(wnd);
+
+        tab_width += bitmapSize.x;
         tab_width += 3; // right side bitmap padding
-        tab_height = wxMax(tab_height, bitmap.GetHeight());
+        tab_height = wxMax(tab_height, bitmapSize.y);
     }
 
     // add padding
@@ -885,9 +892,9 @@ int WxAuiDefaultTabArt::GetBestTabCtrlSize(wxWindow* wnd,
     {
         wxAuiNotebookPage& page = pages.Item(i);
 
-        wxBitmap bmp;
+        wxBitmapBundle bmp;
         if (measureBmp.IsOk())
-            bmp = measureBmp;
+            bmp = wxBitmapBundle(measureBmp);
         else
             bmp = page.bitmap;
 
@@ -936,6 +943,23 @@ void WxAuiDefaultTabArt::SetColour(const wxColour& colour)
 void WxAuiDefaultTabArt::SetActiveColour(const wxColour& colour)
 {
     m_activeColour = colour;
+}
+
+void WxAuiDefaultTabArt::DrawBorder(wxDC& dc,
+                                    wxWindow* wnd,
+                                    const wxRect& rect)
+{
+    return;
+}
+
+int WxAuiDefaultTabArt::GetBorderWidth(wxWindow* wnd)
+{
+    return 2;
+}
+
+int WxAuiDefaultTabArt::GetAdditionalBorderSpace(wxWindow* wnd)
+{
+    return 2;
 }
 
 // -- WxAuiSimpleTabArt class implementation --
@@ -991,7 +1015,8 @@ void WxAuiSimpleTabArt::SetFlags(unsigned int flags)
 }
 
 void WxAuiSimpleTabArt::SetSizingInfo(const wxSize& tab_ctrl_size,
-                                      size_t tab_count)
+                                      size_t tab_count,
+									  wxWindow* wnd)
 {
     m_fixedTabWidth = 100;
 
@@ -1213,7 +1238,7 @@ int WxAuiSimpleTabArt::GetIndentSize()
 wxSize WxAuiSimpleTabArt::GetTabSize(wxDC& dc,
                                      wxWindow* WXUNUSED(wnd),
                                      const wxString& caption,
-                                     const wxBitmap& WXUNUSED(bitmap),
+                                     const wxBitmapBundle& WXUNUSED(bitmap),
                                      bool WXUNUSED(active),
                                      int close_button_state,
                                      int* x_extent)
@@ -1378,6 +1403,23 @@ void WxAuiSimpleTabArt::SetSelectedFont(const wxFont& font)
 void WxAuiSimpleTabArt::SetMeasuringFont(const wxFont& font)
 {
     m_measuringFont = font;
+}
+ 
+void WxAuiSimpleTabArt::DrawBorder(wxDC& dc,
+                                   wxWindow* wnd,
+                                   const wxRect& rect)
+{
+    return;
+}
+
+int WxAuiSimpleTabArt::GetBorderWidth(wxWindow* wnd)
+{
+    return 2;
+}
+
+int WxAuiSimpleTabArt::GetAdditionalBorderSpace(wxWindow* wnd)
+{
+    return 2;
 }
 
 //-----------------------------------------------------------------------------
@@ -1581,17 +1623,19 @@ void FbDefaultTabArt::DrawTab(wxDC& dc,
 
 
 	int bitmap_offset = 0;
+	wxSize bitmapSize;
 	if (page.bitmap.IsOk())
 	{
+		bitmapSize = page.bitmap.GetPreferredLogicalSizeFor(wnd);
 		bitmap_offset = tab_x + 8;
 
 		// draw bitmap
-		dc.DrawBitmap(page.bitmap,
+		dc.DrawBitmap(page.bitmap.GetBitmapFor(wnd),
 					  bitmap_offset,
-					  drawn_tab_yoff + (drawn_tab_height/2) - (page.bitmap.GetHeight()/2),
+					  drawn_tab_yoff + (drawn_tab_height/2) - (bitmapSize.y/2),
 					  true);
 
-		text_offset = bitmap_offset + page.bitmap.GetWidth();
+		text_offset = bitmap_offset + bitmapSize.x;
 		text_offset += 3; // bitmap padding
 	}
 	 else
@@ -1644,8 +1688,9 @@ void FbDefaultTabArt::DrawTab(wxDC& dc,
 		wxRect focusRectBitmap;
 
 		if (page.bitmap.IsOk())
-			focusRectBitmap = wxRect(bitmap_offset, drawn_tab_yoff + (drawn_tab_height/2) - (page.bitmap.GetHeight()/2),
-											page.bitmap.GetWidth(), page.bitmap.GetHeight());
+			bitmapSize = page.bitmap.GetPreferredLogicalSizeFor(wnd);
+			focusRectBitmap = wxRect(bitmap_offset, drawn_tab_yoff + (drawn_tab_height/2) - (bitmapSize.y/2),
+											bitmapSize.x, bitmapSize.y);
 
 		if (page.bitmap.IsOk() && draw_text.IsEmpty())
 			focusRect = focusRectBitmap;
@@ -2083,18 +2128,19 @@ void FbToolbarTabArt::DrawTab(wxDC& dc,
 	}
 
 
+	wxSize bitmapSize;
 	int bitmap_offset = 0;
 	if (page.bitmap.IsOk())
 	{
 		bitmap_offset = tab_x + 8;
-
+		bitmapSize = page.bitmap.GetPreferredLogicalSizeFor(wnd);
 		// draw bitmap
-		dc.DrawBitmap(page.bitmap,
+		dc.DrawBitmap(page.bitmap.GetBitmapFor(wnd),
 					  bitmap_offset,
-					  drawn_tab_yoff + (drawn_tab_height/2) - (page.bitmap.GetHeight()/2),
+					  drawn_tab_yoff + (drawn_tab_height/2) - (bitmapSize.y/2),
 					  true);
 
-		text_offset = bitmap_offset + page.bitmap.GetWidth();
+		text_offset = bitmap_offset + bitmapSize.x;
 		text_offset += 3; // bitmap padding
 	}
 	 else
@@ -2147,8 +2193,9 @@ void FbToolbarTabArt::DrawTab(wxDC& dc,
 		wxRect focusRectBitmap;
 
 		if (page.bitmap.IsOk())
-			focusRectBitmap = wxRect(bitmap_offset, drawn_tab_yoff + (drawn_tab_height/2) - (page.bitmap.GetHeight()/2),
-											page.bitmap.GetWidth(), page.bitmap.GetHeight());
+			bitmapSize = page.bitmap.GetPreferredLogicalSizeFor(wnd);
+			focusRectBitmap = wxRect(bitmap_offset, drawn_tab_yoff + (drawn_tab_height/2) - (bitmapSize.y/2),
+											bitmapSize.x, bitmapSize.y);
 
 		if (page.bitmap.IsOk() && draw_text.IsEmpty())
 			focusRect = focusRectBitmap;
@@ -2273,17 +2320,19 @@ void FbVstudioTabArt::DrawTab(wxDC& dc, wxWindow* wnd,
 
 
 	int bitmap_offset = 0;
+	wxSize bitmapSize;
 	if (page.bitmap.IsOk())
 	{
 		bitmap_offset = tab_x + 8;
+		bitmapSize = page.bitmap.GetPreferredLogicalSizeFor(wnd);
 
 		// draw bitmap
-		dc.DrawBitmap(page.bitmap,
+		dc.DrawBitmap(page.bitmap.GetBitmapFor(wnd),
 					  bitmap_offset,
-					  drawn_tab_yoff + (drawn_tab_height/2) - (page.bitmap.GetHeight()/2),
+					  drawn_tab_yoff + (drawn_tab_height/2) - (bitmapSize.y/2),
 					  true);
 
-		text_offset = bitmap_offset + page.bitmap.GetWidth();
+		text_offset = bitmap_offset + bitmapSize.x;
 		text_offset += 3; // bitmap padding
 	}
 	 else
@@ -2437,17 +2486,19 @@ void FbMozillaTabArt::DrawTab(wxDC& dc, wxWindow* wnd,
 
 
 	int bitmap_offset = 0;
+	wxSize bitmapSize;
 	if (page.bitmap.IsOk())
 	{
 		bitmap_offset = tab_x + 8;
+		bitmapSize = page.bitmap.GetPreferredLogicalSizeFor(wnd);
 
 		// draw bitmap
-		dc.DrawBitmap(page.bitmap,
+		dc.DrawBitmap(page.bitmap.GetBitmapFor(wnd),
 					  bitmap_offset,
-					  drawn_tab_yoff + (drawn_tab_height/2) - (page.bitmap.GetHeight()/2),
+					  drawn_tab_yoff + (drawn_tab_height/2) - (bitmapSize.y/2),
 					  true);
 
-		text_offset = bitmap_offset + page.bitmap.GetWidth();
+		text_offset = bitmap_offset + bitmapSize.y;
 		text_offset += 3; // bitmap padding
 	}
 	 else

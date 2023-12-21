@@ -2288,7 +2288,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 SQLITE_VERSION=3.6.0
-WXWIDGETS_VERSION=2.8.10
+WXWIDGETS_VERSION=3.2.1
 
 
 
@@ -4157,7 +4157,7 @@ if test "$WXFOUND" != 1; then
         Please check that wx-config is in path, the directory
         where wxWindows libraries are installed (returned by
         'wx-config --libs' command) is in LD_LIBRARY_PATH or
-        equivalent variable and wxWindows is version 2.8.10 or above.
+        equivalent variable and wxWindows is version 3.2.1 or above.
     " "$LINENO" 5
 fi
 
@@ -9218,7 +9218,8 @@ if test "x$USE_WXSQL" = "xbuiltin" ; then
   WX_CXXFLAGS="-I\$(srcdir)/3rdparty/wxsqlite3/include $WX_CXXFLAGS"
   WX_LIBS="-lmrl_wxsqlite3 $WX_LIBS"
 else
-  WX_LIBS="-lwxcode_gtk2u_wxsqlite3-2.8 $WX_LIBS"
+  #WX_LIBS="-lwxcode_gtk2u_wxsqlite3-2.8 $WX_LIBS"
++ WX_LIBS="$( pkg-config --libs wxsqlite3-3.2 ) $WX_LIBS"
 fi
 
 

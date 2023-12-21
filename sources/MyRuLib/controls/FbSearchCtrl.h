@@ -281,6 +281,9 @@ protected:
     void OnSize( wxSizeEvent& event );
 
 private:
+    GtkEditable *GetEditable() const;
+    GtkEntry *GetEntry() const;
+
     friend class FbSearchButton;
 
     // the subcontrols
